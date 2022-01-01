@@ -1,0 +1,35 @@
+server: 
+  port: 8585
+spring:
+  main:    web-application-type: reactive
+  h2:
+    console:
+      enabled: true
+  application:
+    name: GATEWAY SERVICE
+  cloud:    gateway:      routes:      - id: payment-service
+        uri: lb://PAYMENT-SERVICE
+        predicates:          - Path=/payment/**
+        filters: 
+          - name: CircuitBreaker
+            args: 
+              name: payment-service
+              fallbackuri: forward:/paymentFallBack
+eureka:
+   client:
+      register-with-eureka: true
+      fetch-registry: true
+      service-url: 
+        defaultZone: http://localhost:8080/eureka
+   instance:
+          hostname: localhost
+          
+management:  endpoints:    web:      exposure:        include: hystrix.stream
+        
+hystrix:
+  command:
+    fallbackcmd:
+      execution: 
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000
